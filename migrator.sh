@@ -775,9 +775,10 @@ migrate_in_increments() {
     # pull images from v1
     for i in ${FULL_IMAGE_ARR[@]:${COUNT_START}:${COUNT_END}}
     do
-      push_pull_image "pull" "${V1_REGISTRY}/${i}" ${COUNT_PULL} ${LEN_FULL_IMAGE_LIST}
+      push_pull_image "pull" "${V1_REGISTRY}/${i}" ${COUNT_PULL} ${LEN_FULL_IMAGE_LIST} &
       COUNT_PULL=$[$COUNT_PULL+1]
-    done
+    done 
+    wait
 
     # retag images from v1 for v2
     for i in ${FULL_IMAGE_ARR[@]:${COUNT_START}:${COUNT_END}}
@@ -789,16 +790,17 @@ migrate_in_increments() {
     # push images to v2
     for i in ${FULL_IMAGE_ARR[@]:${COUNT_START}:${COUNT_END}}
     do
-      push_pull_image "push" "${V2_REGISTRY}/${i}" ${COUNT_PUSH} ${LEN_FULL_IMAGE_LIST}
+      push_pull_image "push" "${V2_REGISTRY}/${i}" ${COUNT_PUSH} ${LEN_FULL_IMAGE_LIST} &
       COUNT_PUSH=$[$COUNT_PUSH+1]
     done
+    wait
 
     # delete images locally to free disk space
-    for i in ${FULL_IMAGE_ARR[@]:${COUNT_START}:${COUNT_END}}
-    do
-      remove_image "${V1_REGISTRY}/${i}"
-      remove_image "${V2_REGISTRY}/${i}"
-    done
+    #for i in ${FULL_IMAGE_ARR[@]:${COUNT_START}:${COUNT_END}}
+    #do
+    #  remove_image "${V1_REGISTRY}/${i}"
+    #  remove_image "${V2_REGISTRY}/${i}"
+    #done
 
     # increment COUNT_START by migration increment value
     COUNT_START=$[$COUNT_START+$MIGRATION_INCREMENT]
@@ -872,5 +874,5 @@ main() {
   fi
   migration_complete
 }
-
+set -x
 main "$@"
